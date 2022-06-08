@@ -171,23 +171,6 @@ contract InterstellarUniversity is ERC721A, Ownable {
     }
 
     function withdraw() external onlyOwner {
-        //35% to utility/investors wallet
-        uint256 withdrawAmount_35 = (address(this).balance * 35) / 100;
-        //20% to artist (post utility)
-        uint256 withdrawAmount_20 = ((address(this).balance -
-            withdrawAmount_35) * 20) / 100;
-        //5% to advisor (post utility)
-        uint256 withdrawAmount_5 = ((address(this).balance -
-            withdrawAmount_35) * 5) / 100;
-        payable(0xF70cE6c33687fCB68B823858766Ae515D4928945).transfer(
-            withdrawAmount_35
-        );
-        payable(0xC44146197386B2b23c11FFbb37D91a004f5bd829).transfer(
-            withdrawAmount_20
-        );
-        payable(0xBD584cE590B7dcdbB93b11e095d9E1D5880B44d9).transfer(
-            withdrawAmount_5
-        );
-        payable(msg.sender).transfer(address(this).balance);
+        /// TODO
     }
 }
