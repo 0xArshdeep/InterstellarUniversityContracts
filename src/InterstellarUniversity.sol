@@ -10,10 +10,10 @@ contract InterstellarUniversity is ERC721A, Ownable {
     using Strings for uint256;
 
     uint256 public constant MAX_SUPPLY = 7777;
-    uint256 public constant MAX_PUBLIC_MINT = 10;
-    uint256 public constant MAX_WHITELIST_MINT = 3;
-    uint256 public constant PUBLIC_SALE_PRICE = .099 ether;
-    uint256 public constant WHITELIST_SALE_PRICE = .0799 ether;
+    uint256 public constant MAX_PUBLIC_MINT = 3;
+    uint256 public constant MAX_WHITELIST_MINT = 1;
+    uint256 public constant PUBLIC_SALE_PRICE = .09 ether;
+    uint256 public constant WHITELIST_SALE_PRICE = .05 ether;
 
     string private baseTokenUri;
     string public placeholderTokenUri;
@@ -40,15 +40,18 @@ contract InterstellarUniversity is ERC721A, Ownable {
     modifier callerIsUser() {
         require(
             tx.origin == msg.sender,
-            "Interstellar University :: Cannot be called by a contract"
+            "Interstellar University :: Cannot be called by a contract."
         );
         _;
     }
 
-    /// @notice Mints
+    /// @notice Public mint for Interstellar University NFT. Calls _safeMint from ERC721A.
     /// @param _quantity number of tokens to mint.
     function mint(uint256 _quantity) external payable callerIsUser {
-        require(publicSale, "Interstellar University :: Not Yet Active.");
+        require(
+            publicSale,
+            "Interstellar University :: Public Sale Is Not Yet Active."
+        );
         require(
             (totalSupply() + _quantity) <= MAX_SUPPLY,
             "Interstellar University :: Beyond Max Supply"
@@ -66,6 +69,8 @@ contract InterstellarUniversity is ERC721A, Ownable {
         _safeMint(msg.sender, _quantity);
     }
 
+    /// @notice Whitelist mint. Addresses that have been whitelisted may mint using this function.
+    /// @param _merkleProof root of the MerkleProof to check for WL addresses.
     function whitelistMint(bytes32[] memory _merkleProof, uint256 _quantity)
         external
         payable
@@ -73,11 +78,11 @@ contract InterstellarUniversity is ERC721A, Ownable {
     {
         require(
             whiteListSale,
-            "Interstellar University :: Minting is on Pause"
+            "Interstellar University :: Minting is currently on pause."
         );
         require(
             (totalSupply() + _quantity) <= MAX_SUPPLY,
-            "Interstellar University :: Cannot mint beyond max supply"
+            "Interstellar University :: Cannot mint beyond the max supply."
         );
         require(
             (totalWhitelistMint[msg.sender] + _quantity) <= MAX_WHITELIST_MINT,
@@ -85,13 +90,13 @@ contract InterstellarUniversity is ERC721A, Ownable {
         );
         require(
             msg.value >= (WHITELIST_SALE_PRICE * _quantity),
-            "Interstellar University :: Payment is below the price"
+            "Interstellar University :: Payment value is below the whitelist price."
         );
         //create leaf node
         bytes32 sender = keccak256(abi.encodePacked(msg.sender));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, sender),
-            "Interstellar University :: You are not whitelisted"
+            "Interstellar University :: You are not whitelisted."
         );
 
         totalWhitelistMint[msg.sender] += _quantity;
@@ -99,7 +104,10 @@ contract InterstellarUniversity is ERC721A, Ownable {
     }
 
     function teamMint() external onlyOwner {
-        require(!teamMinted, "Interstellar University :: Team already minted");
+        require(
+            !teamMinted,
+            "Interstellar University :: Team has already minted."
+        );
         teamMinted = true;
         _safeMint(msg.sender, 200);
     }
@@ -108,8 +116,9 @@ contract InterstellarUniversity is ERC721A, Ownable {
         return baseTokenUri;
     }
 
-    //return uri for certain token
-    function tokenURI(uint256 tokenId)
+    /// @notice Returns the uri for a given token id
+    /// @param _tokenId The id of the token that is being looked up.
+    function tokenURI(uint256 _tokenId)
         public
         view
         virtual
@@ -117,11 +126,11 @@ contract InterstellarUniversity is ERC721A, Ownable {
         returns (string memory)
     {
         require(
-            _exists(tokenId),
+            _exists(_tokenId),
             "ERC721Metadata: URI query for nonexistent token"
         );
 
-        uint256 trueId = tokenId + 1;
+        uint256 trueId = _tokenId + 1;
 
         if (!isRevealed) {
             return placeholderTokenUri;
